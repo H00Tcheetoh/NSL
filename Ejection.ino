@@ -1,8 +1,8 @@
 #include <LoRa.h>
 #include <RTClib.h>
-
 #include "MPU_Init.h"
 #include "BMP_Init.h"
+#include "solenoid.h"
 
 //pinout defintion
 int solenoidPin = 1;
@@ -11,12 +11,14 @@ int solenoidPin = 1;
 bool avionicsMPU_init = false;
 bool avionicsBMP_init = false;
 bool solenoid_init = false;
+unsigned long startTime;
 
 //lora setups
 int LoRa_msg_count;
 const int csPin;
 const int resetPin;
 const int irqPin;
+
 
 Adafruit_MPU6050 avionics_mpu;
 LoRaClass sendModule;
@@ -29,8 +31,9 @@ void setup() {
   float currentAltitude;
   float targetAltitude = 400;
   float TOA = 12000; //time of apogee
-  unsigned long long currentTime = 0; //logs current flight time, currently needs its functionality added to count
+  unsigned long currentTime = 0; //logs current flight time, currently needs its functionality added to count
 
+  solenoid mySolenoid(solenoidPin) = 
   pinMode(solenoidPin, OUTPUT);
   Adafruit_BMP3XX ejectionBMP;
   Adafruit_MPU6050 ejectionMPU;
@@ -40,14 +43,20 @@ void setup() {
   float currentPres; //current pressure for the loop
   float prevPres; //previous pressure for the loop
   //check solenoid
+
+  startTime = millis(); 
+  Serial.println("Timer started");
+
 }
 
 
 void loop() {
   // put your main code here, to run repeatedly:
+  unsigned long currentTime = millis(); //counts milliseconds passed since first called
+
   prevPres = currentPres; // save the last pressure
   currentPres  = digitalRead(bmp.getprss); // read new pressure
-
+  
   if (currentTime > TOA || bmp.getprss)
   {
     if(mpu.acc < 0)
@@ -65,9 +74,7 @@ void loop() {
   }
 }
 
-
-
-bool LoRa_INIT()
+bool LoRa_IN  IT()
 {
   LoRa.setPins(csPin, resetPin, irqPin);
 
@@ -90,13 +97,4 @@ bool LoRa_INIT()
     return true;
     Serial.println("LoRa Module Initialized");
   }
-
-
 }
-
-
-
-
-//test
-
-
